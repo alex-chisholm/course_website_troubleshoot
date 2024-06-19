@@ -1,0 +1,4 @@
+
+R==4.4.0
+mosaicCalc==0.6.1
+mosaic==1.9.1
