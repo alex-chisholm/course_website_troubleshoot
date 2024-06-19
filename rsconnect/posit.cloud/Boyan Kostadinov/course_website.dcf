@@ -1,0 +1,12 @@
+name: course_website
+title: Course Website
+username: Boyan Kostadinov
+account: Boyan Kostadinov
+server: posit.cloud
+hostUrl: https://api.posit.cloud/v1
+appId: 7859830
+bundleId: 8406932
+url: https://posit.cloud/content/7859830
+version: 1
+asMultiple: FALSE
+asStatic: TRUE

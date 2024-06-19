@@ -1,0 +1,22 @@
+---
+title: "Course Syllabus"
+---
+
+## Lecture Schedule
+
+| Lecture | Topic                      | Homework |
+|---------|----------------------------|----------|
+| 1       | Introduction               | 1.1. 1.2 |
+| 2       | What is Probability?       |          |
+| 3       | What is Bayesian Modeling? |          |
+| 4       |                            |          |
+| 5       |                            |          |
+| 6       |                            |          |
+
+```{=html}
+<iframe src="https://www.desmos.com/calculator/akmqd8m0x1?embed" 
+width="500" height="500" style="border: 1px solid #ccc" frameborder=0></iframe>
+```
+$$
+E=mc^2
+$$

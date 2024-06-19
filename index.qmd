@@ -1,0 +1,458 @@
+---
+title: "Sample Lecture Notes"
+subtitle: "MAT 2630 Numerical Methods"
+date: "April 30, 2024"
+format:
+  html:
+    code-fold: true
+    toc: true
+    self-contained: true
+bibliography: references.bib
+---
+
+## Interactive Visualizations with Plotly
+
+In @fig-surface, we create an interactive 3D visualization of a surface plot, annotated with contour lines.
+
+```{r, echo=FALSE, fig.width=10, fig.height=8, message=FALSE, warning=FALSE}
+#| fig-cap: Displaying $g(y,z)=e^{-z}\sin(y)$ as a surface plot annotated with contour lines.
+#| label: fig-surface
+library(mosaicCalc)
+library(mosaic)
+
+surface_plot(exp(-z)*sin(y) ~ y & z, bounds(y=-6:6, z=0:2))
+```
+
+## The Euler Methods and Variants
+
+## The Explicit Euler Method
+
+The Explicit Euler Method is also known as the forward Euler Method.
+
+Consider the general form of an explicitly defined first order ODE:
+
+$$\frac{dS(t)}{dt} = F(t,S(t))$$
+
+That is, $F$ is a function that returns the derivative of a state given a time and state value.
+
+Let $t$ be a numerical grid of the interval $[t_0, t_f]$ with spacing $h$. Without loss of generality, we assume that $t_0 = 0$, and that $t_f = Nh$ for some positive integer, $N$.
+
+The linear approximation (tangent line) of $S(t)$ around $t_j$ at $t_{j+1}$ is
+
+$$S(t_{j+1}) = S(t_j) + (t_{j+1} - t_j)S'(t_j),$$
+
+which can also be written as:
+
+$$S(t_{j+1}) = S(t_j) + hF(t_j, S(t_j)). \quad \text{Explicit Euler Formula}$$ {#eq-fwd-euler}
+
+Equation @eq-fwd-euler is called the **Explicit Euler Formula**, and it allows us to compute an approximation for the state at $S(t_{j+1})$ given the state at $S(t_j)$. Starting from a given initial value of $S_0 = S(t_0)$, we can use this formula to integrate the states up to $S(t_f)$; these $S(t)$ values are then an approximation for the solution of the differential equation. The Explicit Euler formula is the simplest and most intuitive method for solving initial value problems. At any state $(t_j, S(t_j))$ it uses $F$ at that state to "point" toward the next state and then moves in that direction a distance of $h$. See @fig-euler1.
+
+Although there are more sophisticated and accurate methods for solving these problems, they all have the same fundamental structure. As such, we enumerate explicitly the steps for solving an initial value problem using the Explicit Euler formula.
+
+![The illustration of the explicit Euler method.](images/Euler-method-illustration.png){#fig-euler1 width="50%"}
+
+> Add a reference by DOI: https://doi.org/10.1142/12031
+
+**Reference**: [@lambers2020]
+
+**WHAT IS HAPPENING?** Assume we are given a function $F(t, S(t))$ that computes $\frac{dS(t)}{dt}$, a numerical grid, $t$, of the interval, $[t_0, t_f]$, and an initial state value $S_0 = S(t_0)$. We can compute $S(t_j)$ for every $t_j$ in $t$ using the following steps.
+
+1.  Store $S_0 = S(t_0)$ in an array, $S$.
+2.  Compute $S(t_1) = S_0 + hF(t_0, S_0)$.
+3.  Store $S_1 = S(t_1)$ in $S$.
+4.  Compute $S(t_2) = S_1 + hF(t_1, S_1)$.
+5.  Store $S_2 = S(t_1)$ in $S$.
+6.  $\cdots$
+7.  Compute $S(t_f) = S_{f-1} + hF(t_{f-1}, S_{f-1})$.
+8.  Store $S_f = S(t_f)$ in $S$.
+9.  $S$ is an approximation of the solution to the initial value problem.
+
+When using a method with this structure, we say the method **integrates** the solution of the ODE.
+
+::: {#exm-1}
+The differential equation
+
+$$\frac{df(t)}{dt} = e^{-t}$$
+
+with initial condition $f_0 = -1$ has the exact solution $f(t) = -e^{-t}$. Approximate the solution to this initial value problem between 0 and 1 in increments of 0.1 using the Explicit Euler Formula. Plot the difference between the approximated solution and the exact solution.
+:::
+
+::: solution
+```{python}
+import numpy as np
+import matplotlib.pyplot as plt
+
+# Define functions
+f_exact = lambda t: -np.exp(-t) # Exact Solution
+F = lambda t, f: np.exp(-t)  # F(t,f) = df(t)/dt
+h = 0.1 # Step size
+t = np.arange(0, 1 + h, h) # Numerical grid
+f0 = -1 # Initial Condition of f(t)
+
+# Explicit Euler Method
+f = np.zeros(len(t))
+f[0] = f0
+
+for i in range(0, len(t) - 1):
+  f[i + 1] = f[i] + h*F(t[i], f[i])
+
+plt.figure(figsize = (8, 6))
+plt.plot(t, f, 'bo--', label='Approximate')
+plt.plot(t, f_exact(t), 'g', label='Exact')
+plt.title('Approximate and Exact Solution for Simple ODE')
+plt.xlabel('t')
+plt.ylabel('f(t)')
+plt.grid()
+plt.legend(loc='lower right')
+plt.show()
+```
+:::
+
+In the above figure, we can see each dot is one approximation based on the previous dot in a linear fashion. From the initial value, we can eventually get an approximation of the solution on the numerical grid. If we repeat the process for $h = 0.01$, we get a better approximation for the solution:
+
+```{python}
+h = 0.01 # Step size
+t = np.arange(0, 1 + h, h) # Numerical grid
+f0 = -1 # Initial Condition
+
+# Explicit Euler Method
+f = np.zeros(len(t))
+f[0] = f0
+
+for i in range(0, len(t) - 1):
+  f[i + 1] = f[i] + h*F(t[i], f[i])
+
+plt.figure(figsize = (8, 6))
+plt.plot(t, f, 'b--', label='Approximate')
+plt.plot(t, -np.exp(-t), 'g', label='Exact')
+plt.title('Approximate and Exact Solution for Simple ODE')
+plt.xlabel('t')
+plt.ylabel('f(t)')
+plt.grid()
+plt.legend(loc='lower right')
+plt.show()
+```
+
+::: {#exr-1}
+Solve numerically the IVP using the Explicit Euler Method over the interval $[0,1]$:
+
+$$\frac{dy}{dt}=ty+t^3, \, y(0)=1$$
+
+The exact solution can be obtained using the methods for solving ODEs, and it is the following function:
+
+$$y(t)=3e^{t^2/2}-t^2-2$$
+
+Compare the exact and approximate solutions by plotting them on the same plot over $[0,1]$.
+:::
+
+::: solution
+```{python}
+import numpy as np
+import matplotlib.pyplot as plt
+
+# exact solution 
+def sol(t):
+    return 3 * np.exp(t**2 / 2) - t**2 - 2
+
+# Function for the right-hand side of the ODE
+def f(t, y):
+    return t * y + t**3
+
+# Step size
+h = 0.01
+
+# Discretization of the independent variable t
+t = np.arange(0, 1 + h, h)  # Including endpoint
+
+# Initialize the discrete solution vector
+y = np.zeros(len(t))
+y[0] = 1  # Set initial condition (note Python's 0-based indexing)
+
+# Implementing the Explicit Euler Method
+for k in range(1, len(t)):
+    y[k] = y[k - 1] + h * f(t[k - 1], y[k - 1])
+
+# Plotting the theoretical solution
+plt.figure(figsize=(8, 6))
+plt.plot(t, sol(t), label='Exact Solution', color='blue', linewidth=3)
+
+# Plotting the numerical solution
+plt.scatter(t, y, color='red', s=20, label='Numerical Solution (Euler Method)')  # using scatter for points
+plt.title("Solution of Differential Equation")
+plt.xlabel("t")
+plt.ylabel("y")
+plt.grid()
+plt.legend()
+plt.show()
+```
+
+1.  **Function `sol`**: This function is the exact solution of this IVP.
+2.  **Function `f`**: Represents the right-hand side of the differential equation `dy/dt = t * y + t^3`.
+3.  **Step size and discretization**: The R code defines a step size `h` and creates a sequence of time points `t` from 0 to 1 with step size `h`.
+4.  **Initialization of solution vector**: An array `y` is initialized to store the solution, with the initial condition `y[0]` set to 1.
+5.  **Explicit Euler Method**: A for loop updates the solution vector `y` using the explicit Euler formula.
+6.  **Plotting results and adding grid**: The numerical solution is plotted and a grid is added for better visualization.
+:::
+
+## The Implicit Euler Method
+
+The Explicit Euler Formula is called "explicit" because it only requires information at $t_j$ to compute the state at $t_{j+1}$. That is, $S(t_{j+1})$ can be written explicitly in terms of values we have (i.e., $t_j$ and $S(t_j)$). The **Implicit Euler Formula** can be derived by taking the linear approximation of $S(t)$ around $t_{j+1}$ and computing it at $t_j$:
+
+$$
+S(t_{j+1}) = S(t_j) + hF(t_{j+1}, S(t_{j+1})). \quad \text{(Implicit Euler Formula)}
+$$
+
+This formula is peculiar because it requires that we know $S(t_{j+1})$ to compute $S(t_{j+1})$! However, it happens that sometimes we *can* use this formula to approximate the solution to initial value problems. The Implicit Euler Method is also known as the **backward Euler Method**. It is a numerical method for solving ordinary differential equations (ODEs).
+
+Here's a simple example of how to solve an initial value problem (IVP) using the Implicit Euler Method.
+
+::: {#exr-2}
+Consider the differential equation:
+
+$$\frac{dy}{dt} = -3y$$ with the initial condition $y(0) = 1$.
+:::
+
+::: solution
+This is a simple linear ODE where the exact solution is $y(t) = e^{-3t}$. We'll use the Implicit Euler Method to approximate the solution over the interval $t \in [0, 1]$ with a step size $h$.
+
+**Implicit Euler Formula**
+
+The Implicit Euler update formula is:
+
+$$y_{n+1} = y_n + h \cdot f(t_{n+1}, y_{n+1})$$
+
+For our specific equation $\frac{dy}{dt} = -3y$, it becomes:
+
+$$y_{n+1} = y_n - 3h \cdot y_{n+1}$$
+
+Rearranging to solve for $y_{n+1}$:
+
+$$y_{n+1} + 3h \cdot y_{n+1} = y_n$$
+
+$$y_{n+1} (1 + 3h) = y_n$$
+
+$$y_{n+1} = \frac{y_n}{1 + 3h}$$
+
+**Python Implementation**
+
+Let's calculate the solution with a step size $h = 0.1$ over the interval from 0 to 1.
+
+```{python}
+import numpy as np
+import matplotlib.pyplot as plt
+
+# Parameters
+h = 0.1
+t_end = 1
+y0 = 1
+
+# Time steps using np.arange
+t = np.arange(0, t_end + h, h)  # Include t_end by adding h
+
+# Initialize the array for y
+y = np.zeros(len(t))
+y[0] = y0
+
+# Implicit Euler method
+for n in range(len(t) - 1):
+    y[n + 1] = y[n] / (1 + 3 * h)
+
+# Exact solution for comparison
+y_exact = np.exp(-3 * t)
+
+# Plotting
+plt.figure(figsize=(8, 6))
+plt.plot(t, y, 'o-', label='Implicit Euler Approximation')
+plt.plot(t, y_exact, 'k--', label='Exact Solution')
+plt.title('Solution of dy/dt = -3y using Implicit Euler Method')
+plt.xlabel('Time t')
+plt.ylabel('y(t)')
+plt.legend()
+plt.grid()
+plt.show()
+```
+:::
+
+## Trapezoidal Euler Formula
+
+The **Trapezoidal Euler Formula** is the average of the Explicit and Implicit Euler Formulas:
+
+$$
+S(t_{j+1}) = S(t_j) + \frac{h}{2}(F(t_j, S(t_j)) + F(t_{j+1}, S(t_{j+1}))). \quad \text{(Trapezoidal Formula)}
+$$
+
+The Euler Trapezoidal Formula, also known as the Trapezoidal Rule or Heun's Method, is another approach for numerically solving ordinary differential equations (ODEs). This method can be thought of as a predictor-corrector scheme where an initial prediction using the forward Euler method is corrected by averaging the function values at the beginning and end of the interval.
+
+For the same example as before:
+
+$$\frac{dy}{dt} = -3y$$
+
+with the initial condition $y(0) = 1$, let's implement the solution using the Trapezoidal Rule over the interval $t \in [0, 1]$ with a step size $h = 0.1$.
+
+**Trapezoidal Rule Formula**
+
+The trapezoidal update formula is:
+
+$$y_{n+1} = y_n + \frac{h}{2} \left( f(t_n, y_n) + f(t_{n+1}, y_{n+1}^{pred}) \right)$$
+
+where $y_{n+1}^{pred}$ is the prediction from the forward Euler method:
+
+$$y_{n+1}^{pred} = y_n + h \cdot f(t_n, y_n)$$
+
+For the ODE $\frac{dy}{dt} = -3y$, the formula becomes:
+
+$$y_{n+1} = y_n + \frac{h}{2} \left( - 3y_n - 3y_{n+1}^{pred} \right)$$
+
+$$y_{n+1} = y_n - \frac{3h}{2} \left( y_n + y_{n+1}^{pred} \right)$$
+
+$$y_{n+1}^{pred} = y_n - 3h y_n$$
+
+$$y_{n+1} = y_n - \frac{3h}{2} \left( y_n + y_n - 3h y_n \right)$$
+
+**Implementation in Python**
+
+```{python}
+import numpy as np
+import matplotlib.pyplot as plt
+
+# Parameters
+h = 0.1
+t_end = 1
+y0 = 1
+
+# Time steps
+t = np.arange(0, t_end + h, h)
+
+# Initialize the array for y
+y = np.zeros(len(t))
+y[0] = y0
+
+# Trapezoidal Rule method
+for n in range(len(t) - 1):
+    y_pred = y[n] - 3 * h * y[n]  # Predictor step
+    y[n + 1] = y[n] - 1.5 * h * (y[n] + y_pred)  # Corrector step
+
+# Exact solution for comparison
+y_exact = np.exp(-3 * t)
+
+# Plotting
+plt.figure(figsize=(8, 6))
+plt.plot(t, y, 'o-', label='Trapezoidal Rule Approximation')
+plt.plot(t, y_exact, 'k--', label='Exact Solution')
+plt.title('Solution of dy/dt = -3y using Trapezoidal Rule')
+plt.xlabel('Time t')
+plt.ylabel('y(t)')
+plt.legend()
+plt.grid()
+plt.show()
+```
+
+**Explanation:**
+
+-   **Predictor Step**: Using the forward Euler method, we predict $y_{n+1}$.
+-   **Corrector Step**: We then use the average of the derivatives at $t_n$ and $t_{n+1}$ based on the prediction to correct $y_{n+1}$.
+-   **Plotting**: This plots both the numerical solution using the Trapezoidal Rule and the exact solution, showing how closely the numerical method approximates the true solution.
+
+This approach is generally more accurate than the basic Euler methods and is particularly useful for problems where higher numerical stability is desired.
+
+## Python ODE Solvers
+
+In *scipy*, there are several built-in functions for solving initial value problems. The most common one used is the `scipy.integrate.solve_ivp` function. The function construction are shown below:
+
+**CONSTRUCTION:**
+
+Let $F$ be a function object to the function that computes
+
+$$\frac{dS(t)}{dt} = F(t, S(t)), \quad S(t_0)=S_0$$ Here $t$ is a one-dimensional independent variable (time), $S(t)$ is an n-dimensional vector-valued function (state), and the $F(t, S(t))$ defines the differential equations. $S_0$ be an initial value for $S$. The function $F$ *must* have the form $F(t, S)$, although the name does not have to be $F$. The goal is to find the $S(t)$ approximately satisfying the differential equations, given the initial value $S(t_0)=S_0$.
+
+The way we use the solver to solve the differential equation is:
+
+`solve_ivp(fun, t_span, s0, method = 'RK45', t_eval=None)`
+
+where $fun$ takes in the function in the right-hand side of the system. $t\_span$ is the interval of integration $(t0, tf)$, where $t0$ is the start and $tf$ is the end of the interval. $s0$ is the initial state. There are a couple of methods that we can choose, the default is 'RK45', which is the explicit Runge-Kutta method of order 5(4). There are other methods you can use as well, see the end of this section for more information. $t\_eval$ takes in the times at which to store the computed solution, and must be sorted and lie within $t\_span$.
+
+Let's try one example below.
+
+::: {#exm-cos}
+Consider the ODE
+
+$$
+\frac{dS(t)}{dt}=\cos(t)
+$$
+
+for an initial value $S_0 = 0$. The exact solution to this problem is $S(t) = \sin(t)$. Use *solve_ivp* to approximate the solution to this initial value problem over the interval $[0, \pi]$. Plot the approximate solution versus the exact solution and the relative error over time.
+
+```{python}
+import matplotlib.pyplot as plt
+import numpy as np
+from scipy.integrate import solve_ivp
+
+F = lambda t, s: np.cos(t)
+
+t_eval = np.arange(0, np.pi, 0.1)
+sol = solve_ivp(F, [0, np.pi], [0], t_eval=t_eval)
+
+plt.figure(figsize = (9, 4))
+plt.subplot(121)
+plt.plot(sol.t, sol.y[0])
+plt.xlabel('t')
+plt.ylabel('S(t)')
+plt.subplot(122)
+plt.plot(sol.t, sol.y[0] - np.sin(sol.t))
+plt.xlabel('t')
+plt.ylabel('S(t) - sin(t)')
+plt.tight_layout()
+plt.show()
+```
+
+The above left figure shows the integration of $\frac{dS(t)}{dt}=\cos(t)$ with *solve_ivp*. The right figure computes the difference between the solution of the integration by *solve_ivp* and the evalution of the analytical solution to this ODE. As can be seen from the figure, the difference between the approximate and exact solution to this ODE is small. Also, we can control the relative and absolute tolerances using the *rtol* and *atol* arguments, the solver keeps the local error estimates less than $atol + rtol*abs(S)$. The default values are 1e-3 for rtol and 1e-6 for atol.
+
+**TRY IT!** Using the *rtol* and *atol* to make the difference between the approximate and exact solution is less than 1e-7.
+
+```{python}
+sol = solve_ivp(F, [0, np.pi], [0], t_eval=t_eval, rtol = 1e-8, atol = 1e-8)
+
+plt.figure(figsize = (9, 4))
+plt.subplot(121)
+plt.plot(sol.t, sol.y[0])
+plt.xlabel('t')
+plt.ylabel('S(t)')
+plt.subplot(122)
+plt.plot(sol.t, sol.y[0] - np.sin(sol.t))
+plt.xlabel('t')
+plt.ylabel('S(t) - sin(t)')
+plt.tight_layout()
+plt.show()
+```
+:::
+
+::: {#exm-exp}
+Consider the ODE
+
+$$
+\frac{dS(t)}{dt} = -S(t),
+$$
+
+with an initial value of $S_0 = 1$. The exact solution to this problem is $S(t) = e^{-t}$. Use *solve_ivp* to approximate the solution to this initial value problem over the interval $[0, 1]$. Plot the approximate solution versus the exact solution, and the relative error over time.
+
+```{python}
+F = lambda t, s: -s
+
+t_eval = np.arange(0, 1.01, 0.01)
+sol = solve_ivp(F, [0, 1], [1], t_eval=t_eval)
+
+plt.figure(figsize = (9, 4))
+plt.subplot(121)
+plt.plot(sol.t, sol.y[0])
+plt.xlabel('t')
+plt.ylabel('S(t)')
+plt.subplot(122)
+plt.plot(sol.t, sol.y[0] - np.exp(-sol.t))
+plt.xlabel('t')
+plt.ylabel('S(t) - exp(-t)')
+plt.tight_layout()
+plt.show()
+```
+
+The above figure shows the corresponding numerical results. As in the previous example, the difference between the result of *solve_ivp* and the evaluation of the analytical solution by Python is very small in comparison to the value of the function.
+:::
